@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#ffd1e3">
+<title>Il quiz di Soso 💗</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --pink:#ff8fb8;
+  --pink-d:#e8508a;
+  --pink-l:#ffd9e8;
+  --pink-xl:#fff0f6;
+  --paper:#fff4c2;
+  --paper-d:#f3e08e;
+  --ink:#6b3350;
+  --green:#c9f0d0;
+  --rose:#ffc2cf;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;}
+body{
+  font-family:'Quicksand',system-ui,sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(circle at 20% 10%, #fff 0 8%, transparent 9%),
+    radial-gradient(circle at 80% 30%, #fff 0 6%, transparent 7%),
+    radial-gradient(circle at 30% 80%, #fff 0 7%, transparent 8%),
+    linear-gradient(160deg,#ffe3ee,#ffd1e3 55%,#ffc4dc);
+  background-attachment:fixed;
+  overflow-x:hidden;
+  -webkit-user-select:none;user-select:none;
+}
+#app{
+  position:relative;max-width:440px;margin:0 auto;min-height:100dvh;
+  padding:max(18px,env(safe-area-inset-top)) 16px max(24px,env(safe-area-inset-bottom));
+  display:flex;flex-direction:column;
+}
+.view{display:none;flex:1;flex-direction:column;position:relative;z-index:2;animation:pop .35s ease}
+.view.active{display:flex}
+@keyframes pop{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
+
+/* stickers decorativi sullo sfondo */
+.sticker{position:fixed;z-index:1;pointer-events:none;font-size:34px;opacity:.9;filter:drop-shadow(0 3px 2px rgba(190,60,110,.25));animation:float 6s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0) rotate(var(--r,0deg))}50%{transform:translateY(-10px) rotate(calc(var(--r,0deg) + 6deg))}}
+
+/* foglio di carta giallino */
+.paper{
+  position:relative;background:var(--paper);border-radius:6px 10px 8px 12px;
+  padding:20px 18px;margin:14px 4px;
+  box-shadow:0 2px 0 var(--paper-d),0 8px 18px rgba(170,70,110,.25);
+  background-image:repeating-linear-gradient(transparent 0 27px, rgba(232,80,138,.13) 27px 28px);
+}
+.paper.r1{transform:rotate(-1.2deg)}
+.paper.r2{transform:rotate(1deg)}
+.paper::before{ /* nastro adesivo */
+  content:"";position:absolute;top:-11px;left:50%;width:84px;height:22px;transform:translateX(-50%) rotate(-3deg);
+  background:rgba(255,143,184,.55);border-left:2px dotted rgba(255,255,255,.7);border-right:2px dotted rgba(255,255,255,.7);
+}
+.corner{position:absolute;font-size:28px;filter:drop-shadow(0 2px 1px rgba(0,0,0,.15))}
+
+h1,h2{font-family:'Pacifico',cursive;font-weight:400;margin:0;color:var(--pink-d);text-align:center}
+h1{font-size:34px;line-height:1.15}
+h2{font-size:24px}
+.sub{text-align:center;margin:6px 0 0;font-weight:600}
+
+/* cerchio progresso */
+.ring-wrap{position:relative;width:200px;height:200px;margin:8px auto 0}
+.ring-wrap svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring-bg{fill:#fff;stroke:var(--pink-l);stroke-width:14}
+.ring-fg{fill:none;stroke:var(--pink-d);stroke-width:14;stroke-linecap:round;transition:stroke-dashoffset .9s cubic-bezier(.3,1.2,.4,1)}
+.ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring-pct{font-family:'Pacifico',cursive;font-size:44px;color:var(--pink-d);line-height:1}
+.ring-lbl{font-size:12px;font-weight:700;letter-spacing:.5px;margin-top:4px}
+.ring-wrap.ready{cursor:pointer;animation:beat 1.1s ease-in-out infinite}
+@keyframes beat{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+
+.task{
+  display:flex;align-items:center;gap:12px;width:100%;
+  background:#fffdf0;border:2px dashed var(--pink);border-radius:14px;
+  padding:12px 14px;margin-top:10px;font:inherit;color:inherit;text-align:left;cursor:pointer;
+  transition:transform .15s;
+}
+.task:active{transform:scale(.97)}
+.task .ic{font-size:30px}
+.task .tx{flex:1;font-weight:700;line-height:1.2}
+.task .tx small{display:block;font-weight:600;opacity:.7}
+.task .st{font-size:22px}
+.task.done{background:#f1ffe9;border-color:#8fd19e}
+
+/* bottoni */
+.btn{
+  display:block;width:100%;border:0;border-radius:999px;padding:14px 18px;margin-top:14px;
+  font:700 17px 'Quicksand',sans-serif;color:#fff;background:linear-gradient(180deg,var(--pink),var(--pink-d));
+  box-shadow:0 4px 0 #b83a6c,0 8px 14px rgba(180,50,100,.3);cursor:pointer;transition:transform .1s,box-shadow .1s;
+}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #b83a6c}
+.btn.ghost{background:#fff;color:var(--pink-d);box-shadow:0 4px 0 var(--pink-l)}
+.btn[disabled]{opacity:.45;pointer-events:none}
+.back{align-self:flex-start;background:#fff;border:0;border-radius:999px;padding:8px 14px;font:700 14px 'Quicksand';color:var(--pink-d);box-shadow:0 3px 0 var(--pink-l);cursor:pointer}
+
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;position:relative;z-index:2}
+.dots{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+.dot{width:10px;height:10px;border-radius:50%;background:#fff;border:2px solid var(--pink)}
+.dot.on{background:var(--pink-d);border-color:var(--pink-d)}
+
+/* quiz a risposte */
+.qtext{font-size:20px;font-weight:700;line-height:1.3;text-align:center;margin:6px 0 14px}
+.ans{
+  display:block;width:100%;text-align:left;margin-top:9px;padding:12px 14px;border-radius:14px;
+  background:#fff;border:2px solid var(--pink-l);font:600 16px 'Quicksand';color:var(--ink);cursor:pointer;
+  transition:transform .12s,background .2s,border-color .2s;
+}
+.ans:active{transform:scale(.97)}
+.ans b{display:inline-block;width:26px;height:26px;line-height:26px;text-align:center;border-radius:50%;background:var(--pink-l);color:var(--pink-d);margin-right:8px;font-size:14px}
+.ans.ok{background:var(--green);border-color:#6cc27f}
+.ans.ko{background:var(--rose);border-color:#ee7b95;animation:shake .35s}
+.ans.lock{pointer-events:none}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.fb{min-height:26px;text-align:center;font-weight:700;margin-top:10px;color:var(--pink-d)}
+
+/* chi dei due */
+.swipe-area{position:relative;height:330px;margin:10px 0 0;touch-action:none}
+.swipe-hint{display:flex;justify-content:space-between;font-family:'Pacifico';color:var(--pink-d);font-size:20px;padding:0 6px}
+.scard{
+  position:absolute;inset:6px 10px 6px;background:var(--paper);border-radius:10px;padding:20px 16px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+  box-shadow:0 2px 0 var(--paper-d),0 12px 24px rgba(170,70,110,.35);
+  background-image:repeating-linear-gradient(transparent 0 27px, rgba(232,80,138,.13) 27px 28px);
+  touch-action:none;cursor:grab;will-change:transform;
+}
+.scard::before{content:"";position:absolute;top:-11px;left:50%;width:84px;height:22px;transform:translateX(-50%) rotate(2deg);background:rgba(255,143,184,.55)}
+.scard .big{font-size:56px}
+.scard .qq{font-size:23px;font-weight:700;line-height:1.3;margin-top:8px}
+.stamp{position:absolute;top:16px;font-family:'Pacifico';font-size:28px;padding:2px 14px;border:3px solid;border-radius:10px;opacity:0;pointer-events:none}
+/* il nome compare sul lato OPPOSTO a quello verso cui scorri, così resta visibile */
+.stamp.l{right:12px;color:#e8508a;transform:rotate(12deg)}   /* Nini: scorri a sinistra, scritta a destra */
+.stamp.r{left:12px;color:#c44b8e;transform:rotate(-12deg)}   /* Soso: scorri a destra, scritta a sinistra */
+.behind{transform:scale(.95) translateY(10px);filter:brightness(.97);z-index:0}
+.promote{transition:transform .65s cubic-bezier(.34,1.7,.5,1),filter .4s}
+.choices{display:flex;gap:12px;margin-top:6px}
+.choices .btn{margin-top:8px}
+
+/* ricordi */
+.photo{
+  background:#fff;padding:10px 10px 36px;border-radius:4px;box-shadow:0 6px 14px rgba(120,50,80,.3);transform:rotate(-2deg);
+  width:86%;margin:4px auto 0;position:relative;
+}
+.photo .img{width:100%;aspect-ratio:1/1;border-radius:2px;background:var(--pink-xl);display:flex;align-items:center;justify-content:center;font-size:70px;overflow:hidden}
+.photo .img img{width:100%;height:100%;object-fit:cover;display:block}
+.photo::after{content:"💕";position:absolute;right:8px;bottom:4px;font-size:22px}
+.answer{
+  margin-top:12px;padding:12px;border-radius:12px;background:#fffdf0;border:2px dashed var(--pink);
+  text-align:center;font-weight:700;font-size:17px;display:none
+}
+.answer.show{display:block;animation:pop .3s}
+
+/* premio */
+.gift{font-size:110px;text-align:center;animation:beat 1.1s infinite;margin-top:6px}
+.prize-text{font-size:21px;font-weight:700;line-height:1.35;text-align:center}
+.confetti{position:fixed;top:-40px;z-index:50;pointer-events:none;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(540deg);opacity:.9}}
+
+/* solo smartphone: su schermi grandi avvisa */
+#desk{display:none;position:fixed;inset:0;z-index:100;background:#ffd1e3;align-items:center;justify-content:center;text-align:center;padding:30px;font-family:'Pacifico';font-size:26px;color:var(--pink-d)}
+@media (min-width:700px) and (hover:hover) and (pointer:fine){#desk{display:flex}}
+</style>
+</head>
+<body>
+
+<div id="desk">📱 Questo regalo si apre solo dal telefono 💗</div>
+
+<!-- stickers di sfondo -->
+<span class="sticker" style="top:6%;left:3%;--r:-10deg">🌸</span>
+<span class="sticker" style="top:12%;right:4%;font-size:40px;--r:8deg;animation-delay:-2s">🐰</span>
+<span class="sticker" style="top:38%;left:1%;font-size:28px;--r:12deg;animation-delay:-1s">🌷</span>
+<span class="sticker" style="top:55%;right:2%;--r:-8deg;animation-delay:-3s">💌</span>
+<span class="sticker" style="bottom:14%;left:3%;font-size:40px;--r:6deg;animation-delay:-4s">🧸</span>
+<span class="sticker" style="bottom:6%;right:5%;--r:-12deg;animation-delay:-2.5s">🌹</span>
+<span class="sticker" style="top:72%;left:46%;font-size:26px;animation-delay:-1.5s">✨</span>
+<span class="sticker" style="top:24%;left:44%;font-size:30px;--r:-6deg;animation-delay:-0.5s">🐥</span>
+<span class="sticker" style="top:46%;right:12%;font-size:34px;--r:10deg;animation-delay:-3.5s">🐣</span>
+<span class="sticker" style="bottom:22%;left:14%;font-size:30px;--r:-8deg;animation-delay:-2.2s">🐤</span>
+<span class="sticker" style="bottom:3%;left:42%;font-size:32px;--r:7deg;animation-delay:-4.5s">🐥</span>
+
+<div id="app">
+
+  <!-- HOME -->
+  <section class="view active" id="v-home">
+    <div class="paper r1" style="margin-top:22px">
+      <span class="corner" style="top:-14px;right:-10px">🌸</span>
+      <span class="corner" style="bottom:-14px;left:-10px">🐻</span>
+      <span class="corner" style="bottom:-14px;right:-10px">🐥</span>
+      <h1>Il quiz di Soso</h1>
+      <p class="sub">3 attività, 1 sorpresa segreta 🎁</p>
+      <div class="ring-wrap" id="ring">
+        <svg viewBox="0 0 120 120">
+          <circle class="ring-bg" cx="60" cy="60" r="50"/>
+          <circle class="ring-fg" id="ringfg" cx="60" cy="60" r="50" stroke-dasharray="314.16" stroke-dashoffset="314.16"/>
+        </svg>
+        <div class="ring-center">
+          <div class="ring-pct" id="pct">0%</div>
+          <div class="ring-lbl" id="ringlbl">COMPLETATO</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="paper r2" style="margin-top:8px">
+      <button class="task" data-go="q1" id="t-q1"><span class="ic">📝</span><span class="tx">Quanto mi conosci?<small>10 domande su di noi</small></span><span class="st">🌷</span></button>
+      <button class="task" data-go="q2" id="t-q2"><span class="ic">👉</span><span class="tx">Chi dei due...?<small>Trascina la card</small></span><span class="st">🌷</span></button>
+      <button class="task" data-go="q3" id="t-q3"><span class="ic">📸</span><span class="tx">Quiz dei ricordi<small>Ti ricordi questo momento?</small></span><span class="st">🌷</span></button>
+      <button class="btn" id="giftbtn" style="display:none">🎁 Scopri il regalo</button>
+    </div>
+  </section>
+
+  <!-- QUIZ 1 -->
+  <section class="view" id="v-q1">
+    <div class="topbar"><button class="back" data-go="home">← Home</button><div class="dots" id="dots1"></div></div>
+    <div class="paper r1" style="margin-top:22px">
+      <span class="corner" style="top:-14px;left:-8px">🌷</span>
+      <div class="qtext" id="q1text"></div>
+      <div id="q1ans"></div>
+      <div class="fb" id="q1fb"></div>
+    </div>
+    <button class="btn" id="q1next" disabled>Avanti 💗</button>
+  </section>
+
+  <!-- QUIZ 2 -->
+  <section class="view" id="v-q2">
+    <div class="topbar"><button class="back" data-go="home">← Home</button><div class="dots" id="dots2"></div></div>
+    <h2 style="margin-top:14px">Chi dei due...?</h2>
+    <div class="swipe-hint"><span>⬅ Nini</span><span>Soso ➡</span></div>
+    <div class="swipe-area" id="swipe"></div>
+    <div class="choices">
+      <button class="btn ghost" id="b-nini">🌸 Nini</button>
+      <button class="btn" id="b-soso">Soso 🐻</button>
+    </div>
+  </section>
+
+  <!-- QUIZ 3 -->
+  <section class="view" id="v-q3">
+    <div class="topbar"><button class="back" data-go="home">← Home</button><div class="dots" id="dots3"></div></div>
+    <div class="paper r2" style="margin-top:22px">
+      <span class="corner" style="top:-16px;right:-8px">💕</span>
+      <div class="photo"><div class="img" id="q3img"></div></div>
+      <div class="qtext" id="q3text" style="margin-top:14px"></div>
+      <div class="answer" id="q3ans"></div>
+    </div>
+    <button class="btn ghost" id="q3reveal">✨ Rivela la risposta</button>
+    <button class="btn" id="q3next" style="display:none">Avanti 💗</button>
+  </section>
+
+  <!-- PREMIO -->
+  <section class="view" id="v-prize">
+    <div class="paper r1" style="margin-top:34px">
+      <span class="corner" style="top:-14px;left:-10px">🌹</span>
+      <span class="corner" style="top:-14px;right:-10px">🌸</span>
+      <h1>Complimenti!</h1>
+      <p class="sub">Hai superato tutte le prove 💗</p>
+      <div class="gift" id="gift">🎁</div>
+      <div class="prize-text" id="prize" style="display:none"></div>
+    </div>
+    <button class="btn" id="open">Apri il regalo ✨</button>
+    <button class="btn ghost" data-go="home" id="prizeback" style="display:none">← Torna alla home</button>
+  </section>
+
+</div>
+
+<script>
+/* ======================================================
+   ✏️ MODIFICA QUI I CONTENUTI
+   ====================================================== */
+
+// Messaggio del regalo finale
+const PRIZE_TITLE = "Il regalo è...";
+const PRIZE_TEXT  = "<img src='foto/premio.jpg' alt='' style='width:80%;display:block;margin:12px auto;border-radius:4px;background:#fff;padding:8px;box-shadow:0 6px 14px rgba(120,50,80,.3);transform:rotate(-2deg)' onerror=\"this.style.display='none'\">Questa tshirt personalizzata che ho progettato apposta per te con alcuni nostri ricordi 💗<br><small>(non è arrivata in tempo, scusa)</small>";
+
+// Quiz 1: "ok" è il numero (1-4) della risposta giusta
+const QUIZ1 = [
+  {q:"Qual è stata la mia prima impressione di te?", a:["Troppo preziosa","Poco simpatica","Sempre col telefono","Non si sa divertire"], ok:3},
+  {q:"Quando ho iniziato a innamorarmi di te?", a:["Fin da subito","Spiaggia a Vico al tramonto","Sentiero degli Dei","A lavoro"], ok:2},
+  {q:"Conoscendomi, di quale cibo non mi stanco mai?", a:["Pollo fritto","Meal Box del KFC","Smash","Piadina"], ok:4},
+  {q:"Qual è il mio film preferito?", a:["Cabin Fever","Odissea","Backrooms","Joker"], ok:1},
+  {q:"Qual è il mio tipo di attività preferita?", a:["Ad abbronzarci al mare","A camminare in un sentiero","Esplorare una città nuova","Esperienze immersive (parchi, escape room)"], ok:4},
+  {q:"Cosa fai che mi piace di più?", a:["Quando sei gentile con me","Quando mi guardi con i tuoi occhi dolci","Quando mi tratti come un bimbo","Quando mi prendi e mi baci"], ok:1},
+  {q:"Cosa fai che mi piace di meno?", a:["Quando parli con altri ragazzi","Che sei influenzata emotivamente da fattori esterni","Che non riesci nei conti di matematica","Quando fai la brontolona"], ok:3},
+  {q:"Cosa mi rattrista di più?", a:["Quando non ci sei","Sentirmi escluso e non pensato","Quando sei simpatica con altri","Non essere ascoltato"], ok:2},
+  {q:"Quand'è che scoppio e faccio le cose impulsivamente?", a:["Quando mi scoccio di quella cosa","Se sono sovrastimulato","Quando perdo la pazienza","Quando sono già di cattivo umore"], ok:4},
+  {q:"Cosa mi fa scoppiare in lacrime?", a:["Se mi fai male fisicamente","Vederti piangere","Se qualcosa non va secondo i piani","Non scoppio in lacrime"], ok:2}
+];
+
+// Quiz 2: "Chi dei due...?" (sinistra = Nini, destra = Soso). Sostituisci con le tue!
+const QUIZ2 = [
+  {e:"😤", q:"Chi dei due è più brontolone?"},
+  {e:"😴", q:"Chi dei due si addormenta per primo?"},
+  {e:"🍕", q:"Chi dei due mangia di più?"},
+  {e:"🥺", q:"Chi dei due è più geloso?"},
+  {e:"💌", q:"Chi dei due è più romantico?"},
+  {e:"🗺️", q:"Chi dei due sbaglia sempre strada?"},
+  {e:"🙄", q:"Chi dei due è più permaloso?"},
+  {e:"🧸", q:"Chi dei due è più coccolone?"},
+  {e:"😂", q:"Chi dei due ride di più?"},
+  {e:"🤦", q:"Chi dei due si dimentica sempre tutto?"}
+];
+
+// Quiz 3: ricordi. Metti le foto in una cartella "foto" (foto/1.jpg, foto/2.jpg...)
+// Se la foto non c'è, compare un cuoricino.
+const QUIZ3 = [
+  {img:"foto/1.jpg",  q:"Dove abbiamo scattato questa foto?",             a:"Budapest, prima del primo ti amo..."},
+  {img:"foto/2.jpg",  q:"Chi abbiamo visto su questa scalinata?",         a:"La signora che scendeva una gamba alla volta"},
+  {img:"foto/3.jpg",  q:"Chi ci ha inseguiti dopo questa serata?",        a:"I bangladini nel furgoncino"},
+  {img:"foto/4.jpg",  q:"Cosa ho rischiato per andare in questo bagno?",  a:"Di mangiare la pizza più piccante del mondo"},
+  {img:"foto/5.jpg",  q:"Che cos'è?",                                     a:"Il sole che abbiamo visto durante l'eclissi di quest'anno"},
+  {img:"foto/6.jpg",  q:"Cosa stavo scrivendo e dove?",                   a:"Alfonso e Denise alla spiaggia a Vico"},
+  {img:"foto/7.jpg",  q:"Dove abbiamo messo le nostre pietre in equilibrio?", a:"Dietro la piccola cascata"},
+  {img:"foto/8.jpg",  q:"Perché mi preparasti questi dolcetti al limone?", a:"Per nessun motivo, ora non lo fai più e mi manca"},
+  {img:"foto/9.jpg",  q:"Dove abbiamo scattato questa foto?",             a:"Nel nostro ristorante preferito"},
+  {img:"foto/10.jpg", q:"In che luogo hai scritto questa cosa?",          a:"Alla baia di Ieranto!"}
+];
+
+/* ======================================================
+   LOGICA
+   ====================================================== */
+const $ = s => document.querySelector(s);
+const KEY = "quizSoso_done";
+let done = {q1:false,q2:false,q3:false};
+try { done = Object.assign(done, JSON.parse(localStorage.getItem(KEY)||"{}")); } catch(e){}
+const save = () => { try{ localStorage.setItem(KEY, JSON.stringify(done)); }catch(e){} };
+
+function show(id){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  $('#v-'+id).classList.add('active');
+  window.scrollTo(0,0);
+  if(id==='home') updateHome();
+}
+document.addEventListener('click', e=>{
+  const g = e.target.closest('[data-go]');
+  if(!g) return;
+  const to = g.dataset.go;
+  if(to==='q1') startQ1();
+  else if(to==='q2') startQ2();
+  else if(to==='q3') startQ3();
+  else show(to);
+});
+
+function updateHome(){
+  const n = Object.values(done).filter(Boolean).length;
+  const pct = Math.round(n/3*100);
+  $('#pct').textContent = pct+'%';
+  $('#ringfg').style.strokeDashoffset = 314.16*(1-pct/100);
+  ['q1','q2','q3'].forEach(k=>{
+    const t = $('#t-'+k);
+    t.classList.toggle('done', done[k]);
+    t.querySelector('.st').textContent = done[k] ? '✅' : '🌷';
+  });
+  const ready = n===3;
+  $('#ring').classList.toggle('ready', ready);
+  $('#ringlbl').textContent = ready ? 'TOCCAMI 🎁' : 'COMPLETATO';
+  $('#giftbtn').style.display = ready ? 'block' : 'none';
+}
+function openPrize(){
+  if(Object.values(done).every(Boolean)) { resetPrize(); show('prize'); }
+}
+$('#ring').addEventListener('click', openPrize);
+$('#giftbtn').addEventListener('click', openPrize);
+
+function dots(el, total, cur){
+  el.innerHTML = Array.from({length:total},(_,i)=>`<span class="dot ${i<=cur?'on':''}"></span>`).join('');
+}
+function finish(k){ done[k]=true; save(); show('home'); }
+
+/* ---- Quiz 1 ---- */
+let i1 = 0;
+function startQ1(){ i1=0; renderQ1(); show('q1'); }
+function renderQ1(){
+  const d = QUIZ1[i1];
+  dots($('#dots1'), QUIZ1.length, i1);
+  $('#q1text').textContent = d.q;
+  $('#q1fb').textContent = '';
+  $('#q1next').disabled = true;
+  $('#q1next').textContent = i1===QUIZ1.length-1 ? 'Fine 🎀' : 'Avanti 💗';
+  $('#q1ans').innerHTML = d.a.map((t,k)=>`<button class="ans" data-k="${k+1}"><b>${k+1}</b>${t}</button>`).join('');
+}
+$('#q1ans').addEventListener('click', e=>{
+  const b = e.target.closest('.ans'); if(!b) return;
+  const d = QUIZ1[i1], pick = +b.dataset.k;
+  const all = document.querySelectorAll('#q1ans .ans');
+  all.forEach(x=>x.classList.add('lock'));
+  if(pick===d.ok){
+    b.classList.add('ok');
+    $('#q1fb').textContent = pick ? 'Bravissima! 🥰' : '';
+  } else {
+    b.classList.add('ko');
+    all[d.ok-1].classList.add('ok');
+    $('#q1fb').textContent = 'Quasi! Era questa 💗';
+  }
+  $('#q1next').disabled = false;
+});
+$('#q1next').addEventListener('click', ()=>{
+  if(i1<QUIZ1.length-1){ i1++; renderQ1(); } else finish('q1');
+});
+
+/* ---- Quiz 2: swipe ---- */
+let i2 = 0, busy = false, deck = [];
+function shuffle(a){
+  for(let k=a.length-1;k>0;k--){ const j=Math.floor(Math.random()*(k+1)); [a[k],a[j]]=[a[j],a[k]]; }
+  return a;
+}
+function startQ2(){ deck = shuffle(QUIZ2.slice()); i2=0; busy=false; renderQ2(); show('q2'); }
+function cardHTML(d, front){
+  return `<div class="scard ${front?'':'behind'}">
+    <span class="stamp l">Nini</span><span class="stamp r">Soso</span>
+    <div class="big">${d.e}</div><div class="qq">${d.q}</div></div>`;
+}
+function renderQ2(){
+  dots($('#dots2'), deck.length, i2);
+  const area = $('#swipe');
+  let html = '';
+  if(i2+1 < deck.length) html += cardHTML(deck[i2+1], false);
+  html += cardHTML(deck[i2], true);
+  area.innerHTML = html;
+  attachSwipe(area.lastElementChild);
+}
+function attachSwipe(card){
+  let sx=0, dx=0, drag=false;
+  const L = card.querySelector('.stamp.l'), R = card.querySelector('.stamp.r');
+  const move = x => {
+    card.style.transform = `translateX(${x}px) rotate(${x/18}deg)`;
+    L.style.opacity = x<0 ? Math.min(1,-x/90) : 0;
+    R.style.opacity = x>0 ? Math.min(1, x/90) : 0;
+  };
+  card.addEventListener('pointerdown', e=>{ if(busy) return; drag=true; sx=e.clientX; dx=0; card.setPointerCapture(e.pointerId); card.style.transition='none'; });
+  card.addEventListener('pointermove', e=>{ if(!drag) return; dx=e.clientX-sx; move(dx); });
+  const end = ()=>{
+    if(!drag) return; drag=false;
+    if(Math.abs(dx)>90) fly(card, dx>0?1:-1);
+    else { card.style.transition='transform .25s'; move(0); }
+  };
+  card.addEventListener('pointerup', end);
+  card.addEventListener('pointercancel', end);
+}
+function fly(card, dir){
+  if(busy) return; busy = true;
+  card.style.transition='transform .35s ease-in, opacity .35s';
+  card.style.transform = `translateX(${dir*500}px) rotate(${dir*25}deg)`;
+  card.style.opacity = 0;
+  setTimeout(()=>{
+    card.remove();
+    i2++;
+    if(i2>=deck.length){ busy=false; finish('q2'); return; }
+    dots($('#dots2'), deck.length, i2);
+    const area = $('#swipe');
+    const next = area.firstElementChild;          // la carta che stava dietro
+    next.classList.add('promote');                // transizione con rimbalzo (bounce-out)
+    next.classList.remove('behind');
+    attachSwipe(next);
+    if(i2+1 < deck.length) area.insertAdjacentHTML('afterbegin', cardHTML(deck[i2+1], false));
+    busy = false;
+  }, 330);
+}
+function btnSwipe(dir){
+  const c = $('#swipe').lastElementChild; if(!c||busy) return;
+  c.querySelector(dir>0?'.stamp.r':'.stamp.l').style.opacity = 1;
+  fly(c, dir);
+}
+$('#b-nini').addEventListener('click', ()=>btnSwipe(-1));
+$('#b-soso').addEventListener('click', ()=>btnSwipe(1));
+
+/* ---- Quiz 3: ricordi ---- */
+let i3 = 0;
+function startQ3(){ i3=0; renderQ3(); show('q3'); }
+function renderQ3(){
+  const d = QUIZ3[i3];
+  dots($('#dots3'), QUIZ3.length, i3);
+  const box = $('#q3img');
+  box.innerHTML = '';
+  const im = new Image();
+  im.alt = '';
+  im.onload = ()=>{ box.innerHTML=''; box.appendChild(im); };
+  im.onerror = ()=>{ box.textContent = '💗'; };
+  box.textContent = '💗';
+  im.src = d.img;
+  $('#q3text').textContent = d.q;
+  const a = $('#q3ans'); a.textContent = d.a; a.classList.remove('show');
+  $('#q3reveal').style.display = 'block';
+  $('#q3next').style.display = 'none';
+  $('#q3next').textContent = i3===QUIZ3.length-1 ? 'Fine 🎀' : 'Avanti 💗';
+}
+$('#q3reveal').addEventListener('click', ()=>{
+  $('#q3ans').classList.add('show');
+  $('#q3reveal').style.display = 'none';
+  $('#q3next').style.display = 'block';
+});
+$('#q3next').addEventListener('click', ()=>{
+  if(i3<QUIZ3.length-1){ i3++; renderQ3(); } else finish('q3');
+});
+
+/* ---- Premio ---- */
+function resetPrize(){
+  $('#gift').style.display='block';
+  $('#gift').textContent='🎁';
+  $('#prize').style.display='none';
+  $('#open').style.display='block';
+  $('#prizeback').style.display='none';
+}
+$('#open').addEventListener('click', ()=>{
+  $('#gift').textContent='💖';
+  $('#prize').innerHTML = `<div style="font-family:Pacifico;color:var(--pink-d);font-size:26px;margin-bottom:6px">${PRIZE_TITLE}</div>${PRIZE_TEXT}`;
+  $('#prize').style.display='block';
+  $('#open').style.display='none';
+  $('#prizeback').style.display='block';
+  confetti();
+});
+function confetti(){
+  const em = ['🌸','💗','🐥','🌷','✨','💕','🐤','🌹','🎀','🐣'];
+  for(let k=0;k<45;k++){
+    const s = document.createElement('span');
+    s.className='confetti';
+    s.textContent = em[k%em.length];
+    s.style.left = Math.random()*100+'vw';
+    s.style.fontSize = (18+Math.random()*22)+'px';
+    s.style.animationDuration = (2.5+Math.random()*2.5)+'s';
+    s.style.animationDelay = (Math.random()*1.2)+'s';
+    document.body.appendChild(s);
+    setTimeout(()=>s.remove(), 6500);
+  }
+}
+
+updateHome();
+</script>
+</body>
+</html>

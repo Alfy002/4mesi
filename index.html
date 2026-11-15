@@ -325,6 +325,64 @@ const QUIZ3 = [
    LOGICA
    ====================================================== */
 const $ = s => document.querySelector(s);
+
+/* ---- Effetti sonori: generati con Web Audio, senza file esterni ---- */
+let audioCtx = null;
+function audioReady(){
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  if(!AudioContextClass) return null;
+  if(!audioCtx) audioCtx = new AudioContextClass();
+  if(audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+function tone(freq, endFreq, duration, type='sine', volume=0.045, delay=0){
+  const ctx = audioReady();
+  if(!ctx) return;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  const start = ctx.currentTime + delay;
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, start);
+  if(endFreq) osc.frequency.exponentialRampToValueAtTime(Math.max(1,endFreq), start+duration);
+  gain.gain.setValueAtTime(0.0001, start);
+  gain.gain.exponentialRampToValueAtTime(volume, start+0.012);
+  gain.gain.exponentialRampToValueAtTime(0.0001, start+duration);
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start(start);
+  osc.stop(start+duration+0.02);
+}
+function bubbleSound(){
+  tone(620,1050,0.10,'sine',0.035);
+  tone(920,1450,0.13,'sine',0.025,0.045);
+}
+function swipeSound(){
+  tone(360,150,0.20,'sine',0.035);
+  tone(520,260,0.16,'triangle',0.018,0.035);
+}
+function correctSound(){
+  tone(660,880,0.13,'sine',0.045);
+  tone(880,1320,0.20,'sine',0.045,0.12);
+}
+function wrongSound(){
+  tone(260,175,0.22,'triangle',0.045);
+  tone(190,130,0.20,'sine',0.025,0.12);
+}
+function revealSound(){
+  tone(520,780,0.16,'sine',0.035);
+  tone(780,1180,0.22,'sine',0.04,0.10);
+}
+function prizeSound(){
+  tone(523,659,0.22,'sine',0.045);
+  tone(659,784,0.24,'sine',0.045,0.16);
+  tone(784,1047,0.38,'sine',0.05,0.32);
+}
+
+/* Un piccolo suono a bollicina per ogni tocco/click. */
+document.addEventListener('click', e=>{
+  if(e.target.closest('button, .ring-wrap, .scard')) bubbleSound();
+}, true);
+
 const KEY = "quizSoso_done";
 let done = {q1:false,q2:false,q3:false};
 try { done = Object.assign(done, JSON.parse(localStorage.getItem(KEY)||"{}")); } catch(e){}
@@ -390,9 +448,11 @@ $('#q1ans').addEventListener('click', e=>{
   const all = document.querySelectorAll('#q1ans .ans');
   all.forEach(x=>x.classList.add('lock'));
   if(pick===d.ok){
+    correctSound();
     b.classList.add('ok');
     $('#q1fb').textContent = pick ? 'Bravissima! 🥰' : '';
   } else {
+    wrongSound();
     b.classList.add('ko');
     all[d.ok-1].classList.add('ok');
     $('#q1fb').textContent = 'Quasi! Era questa 💗';
@@ -444,6 +504,7 @@ function attachSwipe(card){
 }
 function fly(card, dir){
   if(busy) return; busy = true;
+  swipeSound();
   card.style.transition='transform .35s ease-in, opacity .35s';
   card.style.transform = `translateX(${dir*500}px) rotate(${dir*25}deg)`;
   card.style.opacity = 0;
@@ -490,6 +551,7 @@ function renderQ3(){
   $('#q3next').textContent = i3===QUIZ3.length-1 ? 'Fine 🎀' : 'Avanti 💗';
 }
 $('#q3reveal').addEventListener('click', ()=>{
+  revealSound();
   $('#q3ans').classList.add('show');
   $('#q3reveal').style.display = 'none';
   $('#q3next').style.display = 'block';
@@ -507,6 +569,7 @@ function resetPrize(){
   $('#prizeback').style.display='none';
 }
 $('#open').addEventListener('click', ()=>{
+  prizeSound();
   $('#gift').textContent='💖';
   $('#prize').innerHTML = `<div style="font-family:Pacifico;color:var(--pink-d);font-size:26px;margin-bottom:6px">${PRIZE_TITLE}</div>${PRIZE_TEXT}`;
   $('#prize').style.display='block';
