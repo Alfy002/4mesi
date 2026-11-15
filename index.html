@@ -570,7 +570,7 @@ function resetPrize(){
 }
 $('#open').addEventListener('click', ()=>{
   prizeSound();
-  $('#gift').textContent='💖';
+  $('#gift').style.display='none';
   $('#prize').innerHTML = `<div style="font-family:Pacifico;color:var(--pink-d);font-size:26px;margin-bottom:6px">${PRIZE_TITLE}</div>${PRIZE_TEXT}`;
   $('#prize').style.display='block';
   $('#open').style.display='none';
