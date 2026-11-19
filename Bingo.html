@@ -66,6 +66,14 @@ background:linear-gradient(180deg,var(--pink),var(--pink-d));box-shadow:0 4px 0 
 .photo:nth-child(even){transform:rotate(2deg)}
 .photo img{width:100%;display:block;border-radius:2px}
 .photo::after{content:"💕";position:absolute;right:6px;bottom:1px;font-size:16px}
+.camov{position:fixed;inset:0;z-index:50;background:#000;display:flex;flex-direction:column}
+.camov video{flex:1;min-height:0;width:100%;object-fit:cover}
+.camb{display:flex;align-items:center;justify-content:space-around;padding:18px 10px calc(18px + env(safe-area-inset-bottom,0px));background:rgba(60,15,40,.85)}
+.camb button{border:0;cursor:pointer;font:700 22px 'Quicksand',sans-serif}
+.camb .cx,.camb .flip{width:52px;height:52px;border-radius:50%;background:#fff;color:var(--pink-d)}
+.camb .shot{width:76px;height:76px;border-radius:50%;background:var(--pink);border:5px solid #fff;box-shadow:0 0 0 3px var(--pink-d)}
+.camb .shot:active{transform:scale(.92)}
+.cnt{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);background:rgba(255,255,255,.9);color:var(--pink-d);font:700 16px 'Quicksand',sans-serif;padding:6px 14px;border-radius:999px}
 .x{position:absolute;top:-9px;right:-9px;z-index:2;width:28px;height:28px;border:0;border-radius:50%;background:var(--pink-d);color:#fff;font:700 14px/28px 'Quicksand',sans-serif;padding:0;cursor:pointer;box-shadow:0 2px 6px rgba(120,30,70,.4)}
 </style>
 </head>
@@ -146,15 +154,34 @@ cv.width=im.width*k;cv.height=im.height*k;cv.getContext("2d").drawImage(im,0,0,c
 cb(cv.toDataURL("image/jpeg",.65))};im.src=fr.result};fr.readAsDataURL(f)}
 function add(files){var n=files.length;if(!n)return;
 Array.prototype.forEach.call(files,function(f){shrink(f,function(d){o.photos.push(d);if(--n===0){save();render();draw()}})})}
+function camera(){
+if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){alert("Fotocamera non disponibile qui: usa Carica 📁");return}
+var face="environment",st=null,cv=document.createElement("div");
+cv.className="camov";
+cv.innerHTML='<div class="cnt">📸 '+o.photos.length+'</div><video playsinline autoplay muted></video><div class="camb"><button class="cx" aria-label="Chiudi">✕</button><button class="shot" aria-label="Scatta"></button><button class="flip" aria-label="Gira">🔄</button></div>';
+document.body.appendChild(cv);
+var v=cv.querySelector("video");
+function stop(){if(st)st.getTracks().forEach(function(t){t.stop()});st=null}
+function close(){stop();cv.remove()}
+function start(){stop();navigator.mediaDevices.getUserMedia({video:{facingMode:face,width:{ideal:1280}},audio:false}).then(function(s){st=s;v.srcObject=s}).catch(function(){close();alert("Non riesco ad aprire la fotocamera. Controlla i permessi o usa Carica 📁")})}
+cv.querySelector(".cx").onclick=close;
+cv.querySelector(".flip").onclick=function(){face=face==="environment"?"user":"environment";start()};
+cv.querySelector(".shot").onclick=function(){if(!v.videoWidth)return;
+var k=Math.min(1,640/Math.max(v.videoWidth,v.videoHeight)),c=document.createElement("canvas");
+c.width=v.videoWidth*k;c.height=v.videoHeight*k;c.getContext("2d").drawImage(v,0,0,c.width,c.height);
+o.photos.push(c.toDataURL("image/jpeg",.65));save();render();draw();
+cv.querySelector(".cnt").textContent="📸 "+o.photos.length};
+start();
+}
 function render(){
 mo.innerHTML='<h2>'+(i+1)+'. '+esc(M[i][0])+'</h2><div class="m">'+esc(M[i][1])+'</div>'+
 '<div class="up"><label class="btn up1">📁 Carica<input type="file" id="f1" accept="image/*" multiple hidden></label>'+
-'<label class="btn up2">📷 Foto<input type="file" id="f2" accept="image/*" capture="environment" hidden></label></div>'+
+'<button class="btn up2" id="cam">📷 Foto</button></div>'+
 '<div class="photos">'+o.photos.map(function(p,k){return '<div class="photo"><button class="x" data-k="'+k+'" aria-label="Elimina foto">✕</button><img src="'+p+'" alt="foto"></div>'}).join("")+'</div>'+
 '<button class="btn ok" id="dn">'+(o.done?"↩️ Segna da fare":"✅ Missione completata")+'</button>'+
 '<button class="btn ghost" id="cl">Chiudi</button>';
 $("f1").onchange=function(e){add(e.target.files)};
-$("f2").onchange=function(e){add(e.target.files)};
+$("cam").onclick=camera;
 Array.prototype.forEach.call(mo.querySelectorAll(".x"),function(b){b.onclick=function(){o.photos.splice(+b.getAttribute("data-k"),1);save();render();draw()}});
 $("dn").onclick=function(){o.done=!o.done;save();$("ov").classList.remove("on");draw()};
 $("cl").onclick=function(){$("ov").classList.remove("on");draw()};
